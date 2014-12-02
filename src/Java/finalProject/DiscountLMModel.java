@@ -20,7 +20,7 @@ import java.lang.StringBuilder;
  * Absolute Discount LM Model class (implements LMModel)
  * 
  * @author Chris Eriksen
- * @version 9/23/2014. Assignment 2
+ * @version 12/2/2014. Adapted from CS159 Assignment 2
  */
 public class DiscountLMModel
 	implements LMModel {
@@ -513,24 +513,46 @@ public class DiscountLMModel
 	}
 	
 	
+	/**
+	 * Returns p(third | first second)
+	 * 
+	 * Note: assumes first and second are in vocab (should have already been replaced with <UNK> otherwise)
+	 * 
+	 * @param first
+	 * @param second
+	 * @param third
+	 * @return the propability of the third word given the first two words (as a probability)
+	 */
 	public double getTrigramProb(String first, String second, String third) {
 		
+		// If trigram has been seen before, grab probability
 		if (trigramProbs.get(first).containsKey(second)) {
 			if (trigramProbs.get(first).get(second).containsKey(third)) {
 				return trigramProbs.get(first).get(second).get(third);
 			}
+			
+			// otherwise backoff to bigram model
 			else {
 				double alpha = bigram_alphas.get(first).get(second);
 				double prob = bigramProbs.get(second).get(third);
 				
 				return alpha*prob;
 			}
+			
+		// If bigram has not been seen before
 		} else {
 			return 0.0;
 		}
 	}
 	
 	
+	/**
+	 * Finds the most probable word given the preceding two words by consulting the trigram probabilities
+	 * 
+	 * @param firstWord
+	 * @param secondWord
+	 * @return String representing the most probable next word
+	 */
 	public String findMostProbableWord(String firstWord, String secondWord) {
 		
 		HashMap<String, Double> level1 =  trigramProbs.get(firstWord).get(secondWord);
@@ -553,117 +575,46 @@ public class DiscountLMModel
 	}
 	
 	
+	/**
+	 * Generates a new word given previous two words by sampling from trigram probability distribution
+	 * 
+	 * @param firstWord
+	 * @param secondWord
+	 * @return String representing the newly generated word
+	 */
 	public String generateNextWord(String firstWord, String secondWord) {
 		
 		HashMap<String, Double> level1 =  trigramProbs.get(firstWord).get(secondWord);
 		Set<String> possibleWords = level1.keySet();
 		Iterator<String> itr = possibleWords.iterator();
 		
-		String word_1 = "";
-		Double prob_1 = -999999.9;
-		
-		String word_2 = "";
-		Double prob_2 = -999999.9;
-		
-		String word_3 = "";
-		Double prob_3 = -999999.9;
-		
-		String word_4 = "";
-		Double prob_4 = -999999.9;
-	
-		String word_5 = "";
-		Double prob_5 = -999999.9;
-		
-		while (itr.hasNext()) {
-			String currWord = itr.next();	
-			Double currProb = level1.get(currWord);
-			
-			// check if current word is in the top 5 probable words
-			if (currProb > prob_5) {
-				prob_5 = currProb;
-				word_5 = currWord;
-				
-				// check if the word should go higher up in the list of probable words
-				if (prob_5 > prob_4) {
-					double tempProb = prob_4;
-					String tempWord = word_4;
-					
-					prob_4 = prob_5;
-					word_4 = word_5;
-					prob_5 = tempProb;
-					word_5 = tempWord;
-					
-					if (prob_4 > prob_3) {
-						tempProb = prob_3;
-						tempWord = word_3;
-						
-						prob_3 = prob_4;
-						word_3 = word_4;
-						prob_4 = tempProb;
-						word_4 = tempWord;
-						
-						if (prob_3 > prob_2) {
-							tempProb = prob_2;
-							tempWord = word_2;
-							
-							prob_2 = prob_3;
-							word_2 = word_3;
-							prob_3 = tempProb;
-							word_3 = tempWord;
-							
-							if (prob_2 > prob_1) {
-								tempProb = prob_1;
-								tempWord = word_1;
-								
-								prob_1 = prob_2;
-								word_1 = word_2;
-								prob_2 = tempProb;
-								word_2 = tempWord;
-							}
-						}		
-					}
-				}
-			}
-		}
-		
-		// normalize probabilities
-		double totalProb = prob_1 + prob_2 + prob_3 + prob_4 + prob_5;
-		prob_1 = prob_1/totalProb;
-		prob_2 = prob_2/totalProb + prob_1;
-		prob_3 = prob_3/totalProb + prob_2;
-		prob_4 = prob_4/totalProb + prob_3;
-		prob_5 = prob_5/totalProb + prob_4;
-		
 		// randomly choose number
 		Random generator = new Random();
 		double rand = generator.nextDouble();
 		String randWord = "";
+		double totalProb = 0.0;
 		
-		if (rand < prob_1) {
-			randWord = word_1;
+		
+		while (itr.hasNext()) {
+			String currWord = itr.next();	
+			Double currProb = level1.get(currWord);
+			totalProb += currProb;
+			randWord = currWord;
+			
+			if (rand <= totalProb) {
+				break;
+			}		
 		}
-		
-		else if (rand < prob_2) {
-			randWord = word_2;
-		}
-		
-		else if (rand < prob_3) {
-			randWord = word_3;
-		}
-		
-		else if (rand < prob_4) {
-			randWord = word_4;
-		}
-		
-		else {
-			randWord = word_5;
-		}
-		
 		
 		return randWord;
 	}
 	
 	
+	/**
+	 * Generates a new sentence one word at a time by consulting the trigram language model.
+	 * 
+	 * @return String representing the newly generated sentence
+	 */
 	public String generateSentence() {
 		
 		String sentence = "";
@@ -698,9 +649,12 @@ public class DiscountLMModel
 	}
 	
 	
-	public void generateSentences(String filename) {
-		
-		int numSentences = 100;
+	/**
+	 * Generates numSentences new sentences and writes them to file.
+	 * 
+	 * @param filename
+	 */
+	public void generateSentences(String filename, int numSentences) {
 		
 		try {
 			PrintWriter writer = new PrintWriter(filename, "UTF-8");
@@ -723,6 +677,13 @@ public class DiscountLMModel
 	}
 	
 	
+	/**
+	 * Given a filename containing sentences at each line, finds the most probable sentence given the
+	 * n-gram language model
+	 * 
+	 * @param filename
+	 * @return String representing the most probable sentence
+	 */
 	public String findMostFluentSentence(String filename) {
 
 		// read in file

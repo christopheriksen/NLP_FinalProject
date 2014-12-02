@@ -16,7 +16,7 @@ public class Main {
 		DiscountLMModel ngramModel = new DiscountLMModel("lucene_file", discount); 
 		
 		// generate new candidate sentences -> store in text file
-		ngramModel.generateSentences("candidate_file");
+		ngramModel.generateSentences("candidate_file", 100);
 		
 		// find most fluent candidate sentence
 		String response = corpusLMModel.findMostFluentSentence("candidate_file");
