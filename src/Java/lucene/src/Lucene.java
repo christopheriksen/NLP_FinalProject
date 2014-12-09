@@ -47,7 +47,7 @@ public class Lucene {
         //===================================================
             try {
                 //add files to the index
-                indexer.indexFileOrDirectory(inputDir);
+                indexer.addDocuments(inputDir);
                 //===================================================
                 //after adding, we always have to call the
                 //closeIndex, otherwise the index is not created
@@ -64,7 +64,7 @@ public class Lucene {
     *  Returns a query based on a Lucene indexed database and a query string.  See
     *  the Lucene documentation for the query language.
     */
-    public ArrayList<String> queryResults(String query, int numResults){
+    public ArrayList<String> queryResults(String query, int numResults, int offSet){
             ArrayList<String> results = new ArrayList<String>();
             try {
                 IndexReader reader = DirectoryReader.open(FSDirectory.open(new File(indexLocation)));
@@ -77,9 +77,9 @@ public class Lucene {
                 System.out.println("Found " + hits.length + " hits.");
                 for(int i=0;i<hits.length;++i) {
                     int docId = hits[i].doc;
-                    Document d = searcher.doc(docId);
-                    results.add(d.get("path"));
-                    System.out.println((i + 1) + ". " + d.get("path") + " score=" + hits[i].score);
+                    Document d = searcher.doc(docId + offSet);
+                    results.add(d.get("contents"));
+                    System.out.println((i + 1) + ". " + d.get("contents") + " score=" + hits[i].score);
                 }
             } catch (Exception e) {
                 System.out.println("Error searching " + query + " : " + e.getMessage());
@@ -104,44 +104,39 @@ public class Lucene {
      * @param fileName the name of a text file or a folder we wish to add to the index
      * @throws java.io.IOException when exception
      */
-    public void indexFileOrDirectory(String fileName) throws IOException {
-        //===================================================
-        //gets the list of files in a folder (if user has submitted
-        //the name of a folder) or gets a single file name (is user
-        //has submitted only the file name)
-        //===================================================
-        addFiles(new File(fileName));
-
-        int originalNumDocs = writer.numDocs();
-        for (File f : queue) {
-            FileReader fr = null;
+    public void addDocuments(String fileName) throws IOException {
+        
+        BufferedReader reader = new BufferedReader(new FileReader(fileName));
+        String line = "";
+        int docNum = 0;
+        File f = null;
+        try{
+            f = new File(fileName);
+        }
+        catch(Exception e){
+            System.out.println("Trouble reading " + fileName);
+        }
+        while ((line = reader.readLine()) != null){
             try {
                 Document doc = new Document();
-
                 //===================================================
                 // add contents of file
                 //===================================================
-                fr = new FileReader(f);
-                doc.add(new TextField("contents", fr));
+                doc.add(new StringField("contents", line, Field.Store.YES));
                 doc.add(new StringField("path", f.getPath(), Field.Store.YES));
-                doc.add(new StringField("filename", f.getName(), Field.Store.YES));
-
+                doc.add(new StringField("filename", docNum+"", Field.Store.YES));
+                docNum++;
                 writer.addDocument(doc);
-                System.out.println("Added: " + f);
+                System.out.println("Added: " + line);
             } catch (Exception e) {
-                System.out.println("Could not add: " + f);
-            } finally {
-                fr.close();
-            }
+                System.out.println("Could not add: " + line);
+            } 
         }
-
-        int newNumDocs = writer.numDocs();
+        writer.close();
         System.out.println("");
         System.out.println("************************");
-        System.out.println((newNumDocs - originalNumDocs) + " documents added.");
+        System.out.println(docNum + " documents added.");
         System.out.println("************************");
-
-        queue.clear();
     }
 
     private void addFiles(File file) {
