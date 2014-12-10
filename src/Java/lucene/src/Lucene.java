@@ -35,7 +35,7 @@ public class Lucene {
     public Lucene(String inputDir, String outputDir){      
         Lucene indexer = null;
         try {
-            indexLocation = inputDir;
+            indexLocation = outputDir;
             indexer = new Lucene(outputDir);
         } catch (Exception ex) {
             System.out.println("Cannot create index..." + ex.getMessage());
@@ -123,7 +123,7 @@ public class Lucene {
                 // add contents of file
                 //===================================================
                 doc.add(new StringField("contents", line, Field.Store.YES));
-                doc.add(new StringField("path", f.getPath(), Field.Store.YES));
+                //  doc.add(new StringField("path", f.getPath(), Field.Store.YES));
                 doc.add(new StringField("filename", docNum+"", Field.Store.YES));
                 docNum++;
                 writer.addDocument(doc);
@@ -138,7 +138,10 @@ public class Lucene {
         System.out.println(docNum + " documents added.");
         System.out.println("************************");
     }
-
+    /**
+    *  Adds files to a queue to be indexed.  This function is not used in the case
+    *  that we are indexing sentences in a single file.
+    **/
     private void addFiles(File file) {
 
         if (!file.exists()) {
