@@ -14,9 +14,15 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopScoreDocCollector;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
+<<<<<<< HEAD
+import java.io.*;
+import java.util.ArrayList;
+import java.util.*;
+=======
 
 import java.io.*;
 import java.util.ArrayList;
+>>>>>>> 202bcd4aa0ea56e1d5cb410135acfc03bbf48c03
 
 /**
  * This terminal application creates an Apache Lucene index in a folder and adds files into this index
@@ -41,7 +47,10 @@ public class Lucene {
             System.out.println("Cannot create index..." + ex.getMessage());
             System.exit(-1);
         }
+<<<<<<< HEAD
+=======
 
+>>>>>>> 202bcd4aa0ea56e1d5cb410135acfc03bbf48c03
         //===================================================
         //read input from user until he enters q for quit
         //===================================================
@@ -56,15 +65,24 @@ public class Lucene {
             } catch (Exception e) {
                 System.out.println("Error indexing " + inputDir + " : " + e.getMessage());
         }
+<<<<<<< HEAD
+    }
+=======
 
     }
 
 
+>>>>>>> 202bcd4aa0ea56e1d5cb410135acfc03bbf48c03
     /*
     *  Returns a query based on a Lucene indexed database and a query string.  See
     *  the Lucene documentation for query syntax.
     */
     public ArrayList<String> queryResults(String query, int numResults, int offSet){
+<<<<<<< HEAD
+            System.out.println(query+ "  --  " +  numResults + "  --  " + offSet);
+            System.out.println(indexLocation);
+=======
+>>>>>>> 202bcd4aa0ea56e1d5cb410135acfc03bbf48c03
             ArrayList<String> results = new ArrayList<String>();
             try {
                 IndexReader reader = DirectoryReader.open(FSDirectory.open(new File(indexLocation)));
@@ -77,8 +95,14 @@ public class Lucene {
                 System.out.println("Found " + hits.length + " hits.");
                 for(int i=0;i<hits.length;++i) {
                     int docId = hits[i].doc;
+<<<<<<< HEAD
+                    System.out.println("Doc ID:  " + docId);
+                    Document d = searcher.doc(docId + offSet);
+                    results.add(d.get("sentence"));
+=======
                     Document d = searcher.doc(docId + offSet);
                     results.add(d.get("contents"));
+>>>>>>> 202bcd4aa0ea56e1d5cb410135acfc03bbf48c03
                     System.out.println((i + 1) + ". " + d.get("contents") + " score=" + hits[i].score);
                 }
             } catch (Exception e) {
@@ -122,14 +146,23 @@ public class Lucene {
                 //===================================================
                 // add contents of file
                 //===================================================
+<<<<<<< HEAD
+                doc.add(new TextField("contents", line, Field.Store.NO));
+                doc.add(new StringField("sentence", line, Field.Store.YES));
+=======
                 doc.add(new StringField("contents", line, Field.Store.YES));
+>>>>>>> 202bcd4aa0ea56e1d5cb410135acfc03bbf48c03
                 //  doc.add(new StringField("path", f.getPath(), Field.Store.YES));
                 doc.add(new StringField("filename", docNum+"", Field.Store.YES));
                 docNum++;
                 writer.addDocument(doc);
                 System.out.println("Added: " + line);
             } catch (Exception e) {
+<<<<<<< HEAD
+                // System.out.println("Could not add: " + line);
+=======
                 System.out.println("Could not add: " + line);
+>>>>>>> 202bcd4aa0ea56e1d5cb410135acfc03bbf48c03
             } 
         }
         writer.close();
@@ -175,5 +208,20 @@ public class Lucene {
 
     public static void main(String[] args){
         System.out.println("It compiled!");
+<<<<<<< HEAD
+        Lucene engine = new Lucene("data/wiki.txt", "out");
+        Scanner sc = new Scanner(System.in);
+        String s = "";
+        ArrayList<String> queryResults = null;
+        String[] commands;
+        while((s = sc.nextLine()) != "quit"){
+           queryResults = engine.queryResults(s, 20, 1);
+           System.out.println("Input: " + s);
+           for(String s2: queryResults){
+            System.out.println("\n Output: " + s2);
+           } 
+        }
+=======
+>>>>>>> 202bcd4aa0ea56e1d5cb410135acfc03bbf48c03
     }
 }
