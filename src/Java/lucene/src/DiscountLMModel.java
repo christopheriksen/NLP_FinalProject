@@ -1,5 +1,3 @@
-package finalProject;
-
 import java.util.ArrayList;
 import java.io.IOException;
 import java.util.regex.*;
@@ -14,6 +12,9 @@ import java.util.Iterator;
 import java.util.Random;
 import java.util.Set;
 import java.lang.StringBuilder;
+
+import java.io.*;
+import java.util.*;
 
 
 /**
@@ -291,11 +292,16 @@ public class DiscountLMModel
 			for (String secondWord : vocab) {
 				
 				if (trigrams.get(firstWord).containsKey(secondWord)) {
+
+					trigramProbs.get(firstWord).put(secondWord, new HashMap<String, Double>());
 					
 					for (String currWord : trigrams.get(firstWord).get(secondWord).keySet()) {
 						double numerator = trigrams.get(firstWord).get(secondWord).get(currWord) - discount;
 						double denominator = bigrams.get(firstWord).get(secondWord);
-						trigramProbs.get(firstWord).get(secondWord).put(currWord, numerator/denominator);
+
+						if (denominator != 0) {
+							trigramProbs.get(firstWord).get(secondWord).put(currWord, numerator/denominator);
+						}
 					}
 				}
 			}
@@ -332,6 +338,7 @@ public class DiscountLMModel
 		// Calculate alpha for each bigram we have seen
 		bigram_alphas = new HashMap<String, HashMap<String, Double>>();
 		for (String word1 : vocab) {
+			bigram_alphas.put(word1, new HashMap<String, Double>());
 			Set<String> secondWords = bigramProbs.get(word1).keySet();
 			for (String word2 : secondWords) {
 				
@@ -617,11 +624,16 @@ public class DiscountLMModel
 			for (String secondWord : vocab) {
 				
 				if (trigrams.get(firstWord).containsKey(secondWord)) {
+
+					trigramProbs.get(firstWord).put(secondWord, new HashMap<String, Double>());
 					
 					for (String currWord : trigrams.get(firstWord).get(secondWord).keySet()) {
 						double numerator = trigrams.get(firstWord).get(secondWord).get(currWord) - discount;
 						double denominator = bigrams.get(firstWord).get(secondWord);
-						trigramProbs.get(firstWord).get(secondWord).put(currWord, numerator/denominator);
+
+						if (denominator != 0) {
+							trigramProbs.get(firstWord).get(secondWord).put(currWord, numerator/denominator);
+						}
 					}
 				}
 			}
@@ -658,6 +670,7 @@ public class DiscountLMModel
 		// Calculate alpha for each bigram we have seen
 		bigram_alphas = new HashMap<String, HashMap<String, Double>>();
 		for (String word1 : vocab) {
+			bigram_alphas.put(word1, new HashMap<String, Double>());
 			Set<String> secondWords = bigramProbs.get(word1).keySet();
 			for (String word2 : secondWords) {
 				
@@ -1033,6 +1046,45 @@ public class DiscountLMModel
 		// return the best string we found
 		return bestString;
 		
+	}
+
+	public static void main(String [] args) {
+
+		// create Lucene object
+		Lucene engine = new Lucene("/home/christopher/Documents/HMC/NLP/FinalProject/data/text.shortened", 
+			"/home/christopher/NLP_FinalProject/src/Java/lucene/out");
+
+		System.out.println("Created Lucene engine");
+	
+		// train language model for whole corpus
+		double discount = 0.01;
+		DiscountLMModel corpusLMModel = new DiscountLMModel("/home/christopher/Documents/HMC/NLP/FinalProject/data/text.shortened", discount);
+
+		System.out.println("Trained corpus ngram model");
+		
+		Scanner sc = new Scanner(System.in);
+	    String s = "";
+	    ArrayList<String> queryResultStrings = null;
+	    String[] commands;
+
+	    System.out.println("Type to begin research paper...");
+
+	    while((s = sc.nextLine()) != "quit\n"){
+	       	queryResultStrings = engine.queryResults(s, 100, 1);
+	       	System.out.println(s);
+
+	       	// create n-gram language model
+			DiscountLMModel ngramModel = new DiscountLMModel(queryResultStrings, 0.0); 
+		
+			// generate new candidate sentences -> store in text file
+			ArrayList<String> candidateSentences = ngramModel.generateSentences(100);
+		
+			// find most fluent candidate sentence
+			String response = corpusLMModel.findMostFluentSentence(candidateSentences);
+			System.out.println(response);
+	    }
+		
+
 	}
 	
 	
