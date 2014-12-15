@@ -375,37 +375,6 @@ public class DiscountLMModel
 	 */
 	public DiscountLMModel(ArrayList<String[]> trainingStrings, double discount) {
 		
-		// // read in file
-		// FileReader fr = null;
-		// try {
-		// 	fr = new FileReader(filename);
-		// } catch (FileNotFoundException e) {
-		// 	System.out.println("file could not be read");
-		// 	e.printStackTrace();
-		// }
-		// BufferedReader textReader = new BufferedReader(fr);
-		
-		// String currentLine;
-		// StringBuilder stringBuilder = new StringBuilder();
-		// stringBuilder.append("<s> <s> ");
-		
-		// try {
-		// 	while ( (currentLine = textReader.readLine()) != null) {
-		// 		//fullText += currentLine;
-		// 		stringBuilder.append(currentLine);
-		// 	}
-		// } catch (IOException e) {
-		// 	System.out.println("line could not be read");
-		// 	e.printStackTrace();
-		// }
-		// try {
-		// 	textReader.close();
-		// } catch (IOException e) {
-		// 	System.out.println("Could not close BufferedReader.");
-		// 	e.printStackTrace();
-		// }
-
-
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append("<s> <s> ");
 
@@ -994,6 +963,17 @@ public class DiscountLMModel
 						numPossibleSentences = 0;
 					}
 				}
+
+				if (numPossibleSentences == 2) {
+					Iterator<String> itr = possibleWords.iterator();
+					String word = itr.next();
+					if (word.equals("<UNK>") || word.equals("<s>")) {
+						word = itr.next();
+						if (word.equals("<UNK>") || word.equals("<s>")) {
+							numPossibleSentences = 0;
+						}
+					}
+				}
 			}
 		}
 
@@ -1040,6 +1020,17 @@ public class DiscountLMModel
 					String word = itr.next();
 					if (word.equals("<UNK>") || word.equals("<s>")) {
 						numPossibleSentences = 0;
+					}
+				}
+
+				if (numPossibleSentences == 2) {
+					Iterator<String> itr = possibleWords.iterator();
+					String word = itr.next();
+					if (word.equals("<UNK>") || word.equals("<s>")) {
+						word = itr.next();
+						if (word.equals("<UNK>") || word.equals("<s>")) {
+							numPossibleSentences = 0;
+						}
 					}
 				}
 			}
