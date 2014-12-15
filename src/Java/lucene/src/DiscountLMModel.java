@@ -373,14 +373,14 @@ public class DiscountLMModel
 	 * 
 	 * @param filename textfile to learn the language model from. discount the discount value.
 	 */
-	public DiscountLMModel(ArrayList<String[]> trainingStrings, double discount) {
+	public DiscountLMModel(ArrayList<String> trainingStrings, double discount) {
 		
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append("<s> <s> ");
 
 		for (int i = 0; i < trainingStrings.size(); ++i) {
 			//
-			String currentLine = trainingStrings.get(i)[2];    // index 2 to get the sentence following the most similar sentence
+			String currentLine = trainingStrings.get(i);
 			stringBuilder.append(currentLine);
 		}
 		
@@ -1123,7 +1123,7 @@ public class DiscountLMModel
 		}
 		
 		// generate sentence one word at a time
-		while (!currWord.equals("</s>") && (sentenceLength < 50) ) {
+		while (!currWord.equals("</s>") && (sentenceLength < 30) ) {
 			words.add(currWord);
 			sentence += " ";
 			sentence += currWord;
@@ -1221,10 +1221,13 @@ public class DiscountLMModel
 
 	    while((s = sc.nextLine()) != "quit\n"){
 	       	queryResultStrings = engine.queryResults(s, 100, 1);
-	       	// System.out.println(s);
+	       	ArrayList<String> nextSentences = new ArrayList<String>();
+           	for(String[] s2 : queryResultStrings) {
+        	   	nextSentences.add(s2[2]);   // grab the next sentences (tuple of three)
+           	} 
 
 	       	// create n-gram language model
-			DiscountLMModel ngramModel = new DiscountLMModel(queryResultStrings, 0.0); 
+			DiscountLMModel ngramModel = new DiscountLMModel(nextSentences, 0.0); 
 		
 			// generate new candidate sentences
 			ArrayList<String> candidateSentences = ngramModel.generateSentences(100);
