@@ -14,14 +14,9 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopScoreDocCollector;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
-
 import java.io.*;
 import java.util.ArrayList;
 import java.util.*;
-
-
-import java.io.*;
-import java.util.ArrayList;
 
 /**
  * This terminal application creates an Apache Lucene index in a folder and adds files into this index
@@ -74,28 +69,35 @@ public class Lucene {
         return new ArrayList<String>();
     }*/
 
-    public ArrayList<String> queryResults(String query, int numResults, int offSet){
+    public ArrayList<String[]> queryResults(String query, int numResults, int window){
 
-            ArrayList<String> results = new ArrayList<String>();
+            ArrayList<String[]> results = new ArrayList<String[]>();
+            String[] contextSentences = null;
             try {
                 IndexReader reader = DirectoryReader.open(FSDirectory.open(new File(indexLocation)));
                 IndexSearcher searcher = new IndexSearcher(reader);
                 TopScoreDocCollector collector = TopScoreDocCollector.create(numResults, true);
-                Query q = new QueryParser(Version.LUCENE_40, "contents", analyzer).parse(query);
+                Query q = new QueryParser(Version.LUCENE_40, "index", analyzer).parse(query);
                 searcher.search(q, collector);
                 ScoreDoc[] hits = collector.topDocs().scoreDocs;
                 // 4. display results
                 System.out.println("Found " + hits.length + " hits.");
                 for(int i=0;i<hits.length;++i) {
-                  System.out.println("Doc ID:  " + docId);
-                    Document d = searcher.doc(docId + offSet);
-                    results.add(d.get("sentence"));
+                    int docId = hits[i].doc;
+                    contextSentences = new String[window*2 + 1];
+                    for(int j = 0; j < window*2 + 1; ++j){
+                        Document d = searcher.doc(docId + (j - window));
+                        contextSentences[j] = d.get("contents");
+                    }
+                    results.add(contextSentences);
 
-                    System.out.println((i + 1) + ". " + d.get("contents") + " score=" + hits[i].score);
+                    // System.out.println((i + 1) + ". " + d.get("contents") + " score=" + hits[i].score);
                 }
             } catch (Exception e) {
+                e.printStackTrace();
                 System.out.println("Error searching " + query + " : " + e.getMessage());
         }
+        System.out.println("Original sentence is located at index: " + window);
         return results;
     }
     /**
@@ -128,16 +130,16 @@ public class Lucene {
         catch(Exception e){
             System.out.println("Trouble reading " + fileName);
         }
-        while ((line = reader.readLine()) != null){
+
+        while((line = reader.readLine()) != null){
             try {
+
+
                 Document doc = new Document();
                 //===================================================
                 // add contents of file
                 //===================================================
-
-                doc.add(new TextField("contents", line, Field.Store.NO));
-
-
+                doc.add(new TextField("index", line, Field.Store.NO));
                 doc.add(new StringField("contents", line, Field.Store.YES));
 
                 //  doc.add(new StringField("path", f.getPath(), Field.Store.YES));
@@ -196,16 +198,19 @@ public class Lucene {
 
     public static void main(String[] args){
         System.out.println("It compiled!");
-        Lucene engine = new Lucene("data/wiki.txt", "out");
+        Lucene engine = new Lucene("data/e.txt", "out");
         Scanner sc = new Scanner(System.in);
         String s = "";
-        ArrayList<String> queryResults = null;
+        ArrayList<String[]> queryResults = null;
         String[] commands;
-        while((s = sc.nextLine()) != "quit\n"){
-           queryResults = engine.queryResults(s, 20, 1);
+        int window = 2;
+        while((s = sc.nextLine()) != "quit\n") {
+           queryResults = engine.queryResults(s, 100, window);
            System.out.println("Input: " + s);
-           for(String s2: queryResults){
-            System.out.println("\n Output: " + s2);
+           for(String[] s2 : queryResults) {
+                s2[window - 1];  // the previous sentence
+                s2[window];  // the matched sentene
+                s2[window + 1];  // the following sentence sentence
            } 
         }
     }
