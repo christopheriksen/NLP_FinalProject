@@ -22,7 +22,7 @@ import java.util.*;
  * This terminal application creates an Apache Lucene index in a folder and adds files into this index
  * based on the input of the user.
  */
-public class Lucene {
+public class LuceneBeta {
     private static StandardAnalyzer analyzer = new StandardAnalyzer(Version.LUCENE_40);
 
     private IndexWriter writer;
@@ -32,11 +32,11 @@ public class Lucene {
     *  Create an index of all of our documents.  Document are named with an integer identifier
     * in ascending order.
     */
-    public Lucene(String inputDir, String outputDir){      
-        Lucene indexer = null;
+    public LuceneBeta(String inputDir, String outputDir, int context){      
+        LuceneBeta indexer = null;
         try {
             indexLocation = outputDir;
-            indexer = new Lucene(outputDir);
+            indexer = new LuceneBeta(outputDir);
         } catch (Exception ex) {
             System.out.println("Cannot create index..." + ex.getMessage());
             System.exit(-1);
@@ -47,7 +47,7 @@ public class Lucene {
         //===================================================
             try {
                 //add files to the index
-                indexer.addDocuments(inputDir);
+                indexer.addDocuments(inputDir, context);
                 //===================================================
                 //after adding, we always have to call the
                 //closeIndex, otherwise the index is not created
@@ -58,17 +58,15 @@ public class Lucene {
         }
 
     }
-
-
+    public LuceneBeta(String inputDir, String outputDir){
+        this(inputDir, outputDir, 1);
+    }
 
    /* 
     *  Returns a query based on a Lucene indexed database and a query string.  See
     *  the Lucene documentation for query syntax.
     *
-    public ArrayList<String> queryResults(String, query, int numResults, int offSet, int window){
-        return new ArrayList<String>();
-    }*/
-
+    */
     public ArrayList<String[]> queryResults(String query, int numResults, int window){
 
             ArrayList<String[]> results = new ArrayList<String[]>();
@@ -97,7 +95,6 @@ public class Lucene {
                 e.printStackTrace();
                 System.out.println("Error searching " + query + " : " + e.getMessage());
         }
-        System.out.println("Original sentence is located at index: " + window);
         return results;
     }
     /**
@@ -105,7 +102,7 @@ public class Lucene {
      * @param indexDir the name of the folder in which the index should be created
      * @throws java.io.IOException when exception creating index.
      */
-    Lucene(String indexDir) throws IOException {
+    LuceneBeta(String indexDir) throws IOException {
         // the boolean true parameter means to create a new index everytime,
         // potentially overwriting any existing files there.
         FSDirectory dir = FSDirectory.open(new File(indexDir));
@@ -113,40 +110,49 @@ public class Lucene {
         writer = new IndexWriter(dir, config);
     }
 
+    
+
     /**
      * Indexes a file or directory
      * @param fileName the name of a text file or a folder we wish to add to the index
      * @throws java.io.IOException when exception
      */
-    public void addDocuments(String fileName) throws IOException {
+    public void addDocuments(String fileName, int context) throws IOException {
         
         BufferedReader reader = new BufferedReader(new FileReader(fileName));
         String line = "";
-        int docNum = 0;
+        int docNum = 1;
         File f = null;
+        String[] sentenceContexts = new String[context];
         try{
             f = new File(fileName);
         }
+
         catch(Exception e){
             System.out.println("Trouble reading " + fileName);
         }
-
+        String indexContent = "";
         while((line = reader.readLine()) != null){
             try {
-
-
+                sentenceContexts[docNum % context] = line;
+                indexContent = "";
+                for(String s : sentenceContexts){
+                    if(s != null){
+                        indexContent += " " + s;
+                    }
+                }
                 Document doc = new Document();
                 //===================================================
                 // add contents of file
                 //===================================================
-                doc.add(new TextField("index", line, Field.Store.NO));
+                doc.add(new TextField("index", indexContent, Field.Store.NO));
                 doc.add(new StringField("contents", line, Field.Store.YES));
 
                 //  doc.add(new StringField("path", f.getPath(), Field.Store.YES));
                 doc.add(new StringField("filename", docNum+"", Field.Store.YES));
                 docNum++;
                 writer.addDocument(doc);
-                System.out.println("Added: " + line);
+                System.out.println("Added: " + indexContent);
             } catch (Exception e) {
 
                 // System.out.println("Could not add: " + line);
@@ -161,9 +167,14 @@ public class Lucene {
         System.out.println(docNum + " documents added.");
         System.out.println("************************");
     }
+    public void addDocuments(String fileName) throws IOException {
+        // only one sentence context
+        // larger integers increase the number of prior sentences to be included
+        addDocuments(fileName, 1);
+    }
     /**
     *  Adds files to a queue to be indexed.  This function is not used in the case
-    *  that we are indexing sentences in a single file.
+    *  that we are indexing a single file split by sentences
     **/
     private void addFiles(File file) {
 
@@ -197,20 +208,23 @@ public class Lucene {
     }
 
     public static void main(String[] args){
+        // 0 - index file
+        // 1 - output folder
+        // 2 - index context (number of preceding sentences to index)
+        // 3 - number of results
+        // 4 - query context (preceding and following sentences to return)
         System.out.println("It compiled!");
-        Lucene engine = new Lucene("data/e.txt", "out");
+        LuceneBeta engine = new LuceneBeta(args[0], args[1], Integer.parseInt(args[2]));
         Scanner sc = new Scanner(System.in);
         String s = "";
         ArrayList<String[]> queryResults = null;
-        String[] commands;
-        int window = 2;
         while((s = sc.nextLine()) != "quit\n") {
-           queryResults = engine.queryResults(s, 1, window);
+           queryResults = engine.queryResults(s, Integer.parseInt(args[3]), Integer.parseInt(args[4]));
            System.out.println("Input: " + s);
            for(String[] s2 : queryResults) {
-                System.out.println("Previous: " + s2[window - 1]);  // the previous sentence
-                System.out.println("Match: " + s2[window]);  // the matched sentene
-                System.out.println("Next: " + s2[window + 1]);  // the following sentence
+                System.out.println("Previous: " + s2[Integer.parseInt(args[4]) - 1]);  // the previous sentence
+                System.out.println("Match: " + s2[Integer.parseInt(args[4])]);  // the matched sentene
+                System.out.println("Next: " + s2[Integer.parseInt(args[4]) + 1]);  // the following sentence
            } 
         }
     }
