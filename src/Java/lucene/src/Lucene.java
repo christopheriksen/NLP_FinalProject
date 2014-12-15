@@ -81,7 +81,7 @@ public class Lucene {
                 searcher.search(q, collector);
                 ScoreDoc[] hits = collector.topDocs().scoreDocs;
                 // 4. display results
-                System.out.println("Found " + hits.length + " hits.");
+                // System.out.println("Found " + hits.length + " hits.");
                 for(int i=0;i<hits.length;++i) {
                     int docId = hits[i].doc;
                     contextSentences = new String[window*2 + 1];
@@ -97,7 +97,7 @@ public class Lucene {
                 e.printStackTrace();
                 System.out.println("Error searching " + query + " : " + e.getMessage());
         }
-        System.out.println("Original sentence is located at index: " + window);
+        // System.out.println("Original sentence is located at index: " + window);
         return results;
     }
     /**
@@ -146,7 +146,7 @@ public class Lucene {
                 doc.add(new StringField("filename", docNum+"", Field.Store.YES));
                 docNum++;
                 writer.addDocument(doc);
-                System.out.println("Added: " + line);
+                // System.out.println("Added: " + line);
             } catch (Exception e) {
 
                 // System.out.println("Could not add: " + line);
@@ -208,9 +208,9 @@ public class Lucene {
            queryResults = engine.queryResults(s, 100, window);
            System.out.println("Input: " + s);
            for(String[] s2 : queryResults) {
-                s2[window - 1];  // the previous sentence
-                s2[window];  // the matched sentene
-                s2[window + 1];  // the following sentence sentence
+                // s2[window - 1];  // the previous sentence
+                // s2[window];  // the matched sentene
+                // s2[window + 1];  // the following sentence sentence
            } 
         }
     }
