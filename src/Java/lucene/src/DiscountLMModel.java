@@ -67,6 +67,7 @@ public class DiscountLMModel
 			while ( (currentLine = textReader.readLine()) != null) {
 				//fullText += currentLine;
 				stringBuilder.append(currentLine);
+				stringBuilder.append(" ");
 			}
 		} catch (IOException e) {
 			System.out.println("line could not be read");
@@ -382,6 +383,7 @@ public class DiscountLMModel
 			//
 			String currentLine = trainingStrings.get(i);
 			stringBuilder.append(currentLine);
+			stringBuilder.append(" ");
 		}
 		
 		String fullText = stringBuilder.toString();
