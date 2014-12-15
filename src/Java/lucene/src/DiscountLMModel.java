@@ -1,5 +1,3 @@
-package finalProject;
-
 import java.util.ArrayList;
 import java.io.IOException;
 import java.util.regex.*;
@@ -14,6 +12,9 @@ import java.util.Iterator;
 import java.util.Random;
 import java.util.Set;
 import java.lang.StringBuilder;
+
+import java.io.*;
+import java.util.*;
 
 
 /**
@@ -66,6 +67,7 @@ public class DiscountLMModel
 			while ( (currentLine = textReader.readLine()) != null) {
 				//fullText += currentLine;
 				stringBuilder.append(currentLine);
+				stringBuilder.append(" ");
 			}
 		} catch (IOException e) {
 			System.out.println("line could not be read");
@@ -272,11 +274,13 @@ public class DiscountLMModel
 		
 		// Calculate bigram probability for each bigram that we have seen
 		for (String prevWord : vocab) {
-			for (String currWord : bigrams.get(prevWord).keySet() ) {
-//				double numerator = bigrams.get(prevWord).get(currWord) - discount;
-				double numerator = bigrams.get(prevWord).get(currWord);
-				double denominator = unigrams.get(prevWord);
-				bigramProbs.get(prevWord).put(currWord, numerator/denominator);
+			if (bigrams.containsKey(prevWord)) {
+				for (String currWord : bigrams.get(prevWord).keySet() ) {
+	//				double numerator = bigrams.get(prevWord).get(currWord) - discount;
+					double numerator = bigrams.get(prevWord).get(currWord);
+					double denominator = unigrams.get(prevWord);
+					bigramProbs.get(prevWord).put(currWord, numerator/denominator);
+				}
 			}
 		}
 		
@@ -288,14 +292,21 @@ public class DiscountLMModel
 		
 		// Calculate trigram probability for each trigram that we have seen
 		for (String firstWord : vocab) {
-			for (String secondWord : vocab) {
-				
-				if (trigrams.get(firstWord).containsKey(secondWord)) {
+			if (trigrams.containsKey(firstWord)) {
+				for (String secondWord : vocab) {
 					
-					for (String currWord : trigrams.get(firstWord).get(secondWord).keySet()) {
-						double numerator = trigrams.get(firstWord).get(secondWord).get(currWord) - discount;
-						double denominator = bigrams.get(firstWord).get(secondWord);
-						trigramProbs.get(firstWord).get(secondWord).put(currWord, numerator/denominator);
+					if (trigrams.get(firstWord).containsKey(secondWord)) {
+
+						trigramProbs.get(firstWord).put(secondWord, new HashMap<String, Double>());
+						
+						for (String currWord : trigrams.get(firstWord).get(secondWord).keySet()) {
+							double numerator = trigrams.get(firstWord).get(secondWord).get(currWord) - discount;
+							double denominator = bigrams.get(firstWord).get(secondWord);
+
+							if (denominator != 0) {
+								trigramProbs.get(firstWord).get(secondWord).put(currWord, numerator/denominator);
+							}
+						}
 					}
 				}
 			}
@@ -332,6 +343,7 @@ public class DiscountLMModel
 		// Calculate alpha for each bigram we have seen
 		bigram_alphas = new HashMap<String, HashMap<String, Double>>();
 		for (String word1 : vocab) {
+			bigram_alphas.put(word1, new HashMap<String, Double>());
 			Set<String> secondWords = bigramProbs.get(word1).keySet();
 			for (String word2 : secondWords) {
 				
@@ -364,37 +376,6 @@ public class DiscountLMModel
 	 */
 	public DiscountLMModel(ArrayList<String> trainingStrings, double discount) {
 		
-		// // read in file
-		// FileReader fr = null;
-		// try {
-		// 	fr = new FileReader(filename);
-		// } catch (FileNotFoundException e) {
-		// 	System.out.println("file could not be read");
-		// 	e.printStackTrace();
-		// }
-		// BufferedReader textReader = new BufferedReader(fr);
-		
-		// String currentLine;
-		// StringBuilder stringBuilder = new StringBuilder();
-		// stringBuilder.append("<s> <s> ");
-		
-		// try {
-		// 	while ( (currentLine = textReader.readLine()) != null) {
-		// 		//fullText += currentLine;
-		// 		stringBuilder.append(currentLine);
-		// 	}
-		// } catch (IOException e) {
-		// 	System.out.println("line could not be read");
-		// 	e.printStackTrace();
-		// }
-		// try {
-		// 	textReader.close();
-		// } catch (IOException e) {
-		// 	System.out.println("Could not close BufferedReader.");
-		// 	e.printStackTrace();
-		// }
-
-
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append("<s> <s> ");
 
@@ -402,6 +383,7 @@ public class DiscountLMModel
 			//
 			String currentLine = trainingStrings.get(i);
 			stringBuilder.append(currentLine);
+			stringBuilder.append(" ");
 		}
 		
 		String fullText = stringBuilder.toString();
@@ -598,11 +580,14 @@ public class DiscountLMModel
 		
 		// Calculate bigram probability for each bigram that we have seen
 		for (String prevWord : vocab) {
-			for (String currWord : bigrams.get(prevWord).keySet() ) {
-//				double numerator = bigrams.get(prevWord).get(currWord) - discount;
-				double numerator = bigrams.get(prevWord).get(currWord);
-				double denominator = unigrams.get(prevWord);
-				bigramProbs.get(prevWord).put(currWord, numerator/denominator);
+
+			if (bigrams.containsKey(prevWord)) {
+				for (String currWord : bigrams.get(prevWord).keySet() ) {
+	//				double numerator = bigrams.get(prevWord).get(currWord) - discount;
+					double numerator = bigrams.get(prevWord).get(currWord);
+					double denominator = unigrams.get(prevWord);
+					bigramProbs.get(prevWord).put(currWord, numerator/denominator);
+				}
 			}
 		}
 		
@@ -614,14 +599,22 @@ public class DiscountLMModel
 		
 		// Calculate trigram probability for each trigram that we have seen
 		for (String firstWord : vocab) {
-			for (String secondWord : vocab) {
-				
-				if (trigrams.get(firstWord).containsKey(secondWord)) {
+
+			if (trigrams.containsKey(firstWord)) {
+				for (String secondWord : vocab) {
 					
-					for (String currWord : trigrams.get(firstWord).get(secondWord).keySet()) {
-						double numerator = trigrams.get(firstWord).get(secondWord).get(currWord) - discount;
-						double denominator = bigrams.get(firstWord).get(secondWord);
-						trigramProbs.get(firstWord).get(secondWord).put(currWord, numerator/denominator);
+					if (trigrams.get(firstWord).containsKey(secondWord)) {
+
+						trigramProbs.get(firstWord).put(secondWord, new HashMap<String, Double>());
+						
+						for (String currWord : trigrams.get(firstWord).get(secondWord).keySet()) {
+							double numerator = trigrams.get(firstWord).get(secondWord).get(currWord) - discount;
+							double denominator = bigrams.get(firstWord).get(secondWord);
+
+							if (denominator != 0) {
+								trigramProbs.get(firstWord).get(secondWord).put(currWord, numerator/denominator);
+							}
+						}
 					}
 				}
 			}
@@ -658,19 +651,31 @@ public class DiscountLMModel
 		// Calculate alpha for each bigram we have seen
 		bigram_alphas = new HashMap<String, HashMap<String, Double>>();
 		for (String word1 : vocab) {
+			bigram_alphas.put(word1, new HashMap<String, Double>());
 			Set<String> secondWords = bigramProbs.get(word1).keySet();
 			for (String word2 : secondWords) {
 				
 				// Calculate reserved mass
-				int numTypes = trigramProbs.get(word1).get(word2).size();
+				int numTypes = 0;
+				if (trigramProbs.containsKey(word1)) {
+					if (trigramProbs.get(word1).containsKey(word2)) {
+						numTypes = trigramProbs.get(word1).get(word2).size();
+					}
+				}
 				double numerator = numTypes*discount;
 				double denominator = bigrams.get(word1).get(word2);
 				double reservedMass = numerator/denominator;
 				
 				double probSum = 0.0;
-				Set<String> secondKeys = trigramProbs.get(word1).get(word2).keySet();
-				for(String key : secondKeys) {
-					probSum += bigramProbs.get(word2).get(key);
+
+				if (trigramProbs.containsKey(word1)) {
+					if (trigramProbs.get(word1).containsKey(word2)) {
+						
+						Set<String> secondKeys = trigramProbs.get(word1).get(word2).keySet();
+						for(String key : secondKeys) {
+							probSum += bigramProbs.get(word2).get(key);
+						}
+					}
 				}
 				
 				double alpha = reservedMass/(1 - probSum);
@@ -703,10 +708,12 @@ public class DiscountLMModel
 		// Construct array of subsequent trigrams
 		ArrayList<String[]> trigramList = new ArrayList<String[]>();
 		for (int i = 2; i < sentWords.size(); ++i) {
-			trigramList.add(new String[3]);
-			trigramList.get(i-1)[0] = sentWords.get(i-2);
-			trigramList.get(i-1)[1] = sentWords.get(i-1);
-			trigramList.get(i-1)[2] = sentWords.get(i);
+			String[] trigram = new String[3];
+			trigram[0] = sentWords.get(i-2);
+			trigram[1] = sentWords.get(i-1);
+			trigram[2] = sentWords.get(i);
+
+			trigramList.add(trigram);
 		}
 		
 		// Calculate trigram probabilities and take log of multiplied values
@@ -861,14 +868,47 @@ public class DiscountLMModel
 			// otherwise backoff to bigram model
 			else {
 				double alpha = bigram_alphas.get(first).get(second);
-				double prob = bigramProbs.get(second).get(third);
+				double prob = 0.0;
+				if (bigramProbs.get(second).containsKey(third)) {
+					prob = bigramProbs.get(second).get(third);
+				}
 				
 				return alpha*prob;
 			}
 			
-		// If bigram has not been seen before
-		} else {
-			return 0.0;
+		// If bigram has not been seen before, try <UNK> instead
+		} else if (trigramProbs.get(first).containsKey("<UNK>")) {
+			if (trigramProbs.get(first).get("<UNK>").containsKey(third)) {
+				return trigramProbs.get(first).get("<UNK>").get(third);
+			}
+			
+			// otherwise backoff to bigram model
+			else {
+				double alpha = bigram_alphas.get(first).get("<UNK>");
+				double prob = 0.0;
+				if (bigramProbs.get("<UNK>").containsKey(third)) {
+					prob = bigramProbs.get("<UNK>").get(third);
+				}
+				
+				return alpha*prob;
+			}
+		}
+
+		else {
+			if (trigramProbs.get("<UNK>").get("<UNK>").containsKey(third)) {
+				return trigramProbs.get("<UNK>").get("<UNK>").get(third);
+			}
+			
+			// otherwise backoff to bigram model
+			else {
+				double alpha = bigram_alphas.get("<UNK>").get("<UNK>");
+				double prob = 0.0;
+				if (bigramProbs.get("<UNK>").containsKey(third)) {
+					prob = bigramProbs.get("<UNK>").get(third);
+				}
+				
+				return alpha*prob;
+			}
 		}
 	}
 	
@@ -911,29 +951,151 @@ public class DiscountLMModel
 	 */
 	public String generateNextWord(String firstWord, String secondWord) {
 		
-		HashMap<String, Double> level1 =  trigramProbs.get(firstWord).get(secondWord);
-		Set<String> possibleWords = level1.keySet();
-		Iterator<String> itr = possibleWords.iterator();
-		
-		// randomly choose number
-		Random generator = new Random();
-		double rand = generator.nextDouble();
-		String randWord = "";
-		double totalProb = 0.0;
-		
-		
-		while (itr.hasNext()) {
-			String currWord = itr.next();	
-			Double currProb = level1.get(currWord);
-			totalProb += currProb;
-			randWord = currWord;
-			
-			if (rand <= totalProb) {
-				break;
-			}		
+		int numPossibleSentences = 0;
+		if (trigramProbs.containsKey(firstWord)) {
+			if (trigramProbs.get(firstWord).containsKey(secondWord)) {
+				HashMap<String, Double> level1 =  trigramProbs.get(firstWord).get(secondWord);
+				Set<String> possibleWords = level1.keySet();
+				numPossibleSentences = possibleWords.size();
+
+				if (numPossibleSentences == 1) {
+					Iterator<String> itr = possibleWords.iterator();
+					String word = itr.next();
+					if (word.equals("<UNK>") || word.equals("<s>")) {
+						numPossibleSentences = 0;
+					}
+				}
+
+				if (numPossibleSentences == 2) {
+					Iterator<String> itr = possibleWords.iterator();
+					String word = itr.next();
+					if (word.equals("<UNK>") || word.equals("<s>")) {
+						word = itr.next();
+						if (word.equals("<UNK>") || word.equals("<s>")) {
+							numPossibleSentences = 0;
+						}
+					}
+				}
+			}
 		}
-		
-		return randWord;
+
+		// if there is at least 1 possible next word using the trigram model
+		if (numPossibleSentences > 0) {
+			HashMap<String, Double> level1 =  trigramProbs.get(firstWord).get(secondWord);
+			Set<String> possibleWords = level1.keySet();
+
+			Iterator<String> itr = possibleWords.iterator();
+			
+			// randomly choose number
+			Random generator = new Random();
+			double rand = generator.nextDouble();
+			String randWord = "<!!!>";
+			double totalProb = 0.0;
+			
+			
+			while (itr.hasNext()) {
+				String currWord = itr.next();	
+				Double currProb = level1.get(currWord);
+				totalProb += currProb;
+				if (!currWord.equals("<UNK>") && !currWord.equals("<s>")) {
+					randWord = currWord;
+				}
+				
+				if ((rand <= totalProb) && !(currWord.equals("<UNK>")) && !(currWord.equals("<s>")) ) {
+					break;
+				}		
+			}
+			
+			return randWord;
+		}
+
+		// otherwise backoff to bigram
+		else {
+			numPossibleSentences = 0;
+			if (bigramProbs.containsKey(secondWord)) {
+				HashMap<String, Double> level1 =  bigramProbs.get(secondWord);
+				Set<String> possibleWords = level1.keySet();
+				numPossibleSentences = possibleWords.size();
+
+				if (numPossibleSentences == 1) {
+					Iterator<String> itr = possibleWords.iterator();
+					String word = itr.next();
+					if (word.equals("<UNK>") || word.equals("<s>")) {
+						numPossibleSentences = 0;
+					}
+				}
+
+				if (numPossibleSentences == 2) {
+					Iterator<String> itr = possibleWords.iterator();
+					String word = itr.next();
+					if (word.equals("<UNK>") || word.equals("<s>")) {
+						word = itr.next();
+						if (word.equals("<UNK>") || word.equals("<s>")) {
+							numPossibleSentences = 0;
+						}
+					}
+				}
+			}
+
+			if (numPossibleSentences > 0) {
+				HashMap<String, Double> level1 =  bigramProbs.get(secondWord);
+				Set<String> possibleWords = level1.keySet();
+
+				Iterator<String> itr = possibleWords.iterator();
+				
+				// randomly choose number
+				Random generator = new Random();
+				double rand = generator.nextDouble();
+				String randWord = "<!!!>";
+				double totalProb = 0.0;
+				
+				
+				while (itr.hasNext()) {
+					String currWord = itr.next();	
+					Double currProb = level1.get(currWord);
+					totalProb += currProb;
+					if (!currWord.equals("<UNK>") && !currWord.equals("<s>")) {
+						randWord = currWord;
+					}
+					
+					if ((rand <= totalProb) && !(currWord.equals("<UNK>")) && !(currWord.equals("<s>")) ) {
+						break;
+					}		
+				}
+			
+				return randWord;
+			}
+
+			// if there aren't any possible bigrams backoff to unigram
+			else {
+				Set<String> possibleWords = unigramProbs.keySet();
+
+				Iterator<String> itr = possibleWords.iterator();
+				
+				// randomly choose number
+				Random generator = new Random();
+				double rand = generator.nextDouble();
+				String randWord = "<!!!>";
+				double totalProb = 0.0;
+				
+				
+				while (itr.hasNext()) {
+					String currWord = itr.next();	
+					Double currProb = unigramProbs.get(currWord);
+					totalProb += currProb;
+					if (!currWord.equals("<UNK>") && !currWord.equals("<s>")) {
+						randWord = currWord;
+					}
+					
+					if ((rand <= totalProb) && !(currWord.equals("<UNK>")) && !(currWord.equals("<s>")) ) {
+						break;
+					}		
+				}
+			
+				return randWord;
+
+			}
+		}
 	}
 	
 	
@@ -963,7 +1125,7 @@ public class DiscountLMModel
 		}
 		
 		// generate sentence one word at a time
-		while (!currWord.equals("</s>")) {
+		while (!currWord.equals("</s>") && (sentenceLength < 30) ) {
 			words.add(currWord);
 			sentence += " ";
 			sentence += currWord;
@@ -1011,12 +1173,15 @@ public class DiscountLMModel
 		// 	e.printStackTrace();
 		// }
 		// BufferedReader textReader = new BufferedReader(fr);
-		
+
 		String currentLine;
-		String bestString = "";
-		Double bestProb = -99999999.9;
+		String bestString = sentences.get(0);
+
+		String[] firstArray = bestString.split("\\s+");
+		ArrayList<String> firstList = new ArrayList<String>(Arrays.asList(firstArray));
+		double bestProb = logProb(firstList);
 		
-		for (int i = 0; i < sentences.size(); ++i) {	
+		for (int i = 1; i < sentences.size(); ++i) {	
 			currentLine = sentences.get(i); 
 			String[] currArray = currentLine.split("\\s+");
 			ArrayList<String> currList = new ArrayList<String>(Arrays.asList(currArray));
@@ -1033,6 +1198,48 @@ public class DiscountLMModel
 		// return the best string we found
 		return bestString;
 		
+	}
+
+	public static void main(String [] args) {
+
+		// create Lucene object
+		Lucene engine = new Lucene("/home/christopher/Documents/HMC/NLP/FinalProject/data/text.shortened", 
+			"/home/christopher/NLP_FinalProject/src/Java/lucene/out");
+
+		System.out.println("Created Lucene engine");
+	
+		// train language model for whole corpus
+		double discount = 0.01;
+		DiscountLMModel corpusLMModel = new DiscountLMModel("/home/christopher/Documents/HMC/NLP/FinalProject/data/text.shortened", discount);
+
+		System.out.println("Trained corpus ngram model");
+		
+		Scanner sc = new Scanner(System.in);
+	    String s = "";
+	    ArrayList<String[]> queryResultStrings = null;
+	    String[] commands;
+
+	    System.out.println("Type to begin research paper...");
+
+	    while((s = sc.nextLine()) != "quit\n"){
+	       	queryResultStrings = engine.queryResults(s, 100, 1);
+	       	ArrayList<String> nextSentences = new ArrayList<String>();
+           	for(String[] s2 : queryResultStrings) {
+        	   	nextSentences.add(s2[2]);   // grab the next sentences (tuple of three)
+           	} 
+
+	       	// create n-gram language model
+			DiscountLMModel ngramModel = new DiscountLMModel(nextSentences, 0.0); 
+		
+			// generate new candidate sentences
+			ArrayList<String> candidateSentences = ngramModel.generateSentences(100);
+		
+			// find most fluent candidate sentence
+			String response = corpusLMModel.findMostFluentSentence(candidateSentences);
+			System.out.println("Response: " + response);
+	    }
+		
+
 	}
 	
 	
