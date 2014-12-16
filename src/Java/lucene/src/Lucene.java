@@ -65,9 +65,7 @@ public class Lucene {
     *  Returns a query based on a Lucene indexed database and a query string.  See
     *  the Lucene documentation for query syntax.
     *
-    public ArrayList<String> queryResults(String, query, int numResults, int offSet, int window){
-        return new ArrayList<String>();
-    }*/
+    */
 
     public ArrayList<String[]> queryResults(String query, int numResults, int window){
 
