@@ -119,8 +119,8 @@ public class SyntacticModel {
 	public SyntacticModel (String luceneFile) throws IOException {
 		
 		// Lexicalized Parser
-	    String grammar = "edu\\stanford\\nlp\\models\\lexparser\\englishPCFG.ser.gz";
-	    String[] options = { "-maxLength", "80" };
+	    String grammar = "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz";
+	    String[] options = { "-maxLength", "80"};
 	    LexicalizedParser lp = LexicalizedParser.loadModel(grammar, options);
 		
 		BufferedReader br = new BufferedReader(new FileReader(luceneFile));

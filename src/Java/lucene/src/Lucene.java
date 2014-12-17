@@ -32,16 +32,19 @@ public class Lucene {
     *  Create an index of all of our documents.  Document are named with an integer identifier
     * in ascending order.
     */
-    public Lucene(String inputDir, String outputDir){      
-        Lucene indexer = null;
-        try {
+    public Lucene(String dontyou, String hatelegacyapis){      
+
+        
+
+
+        // this portion has been replaced with IndexGenerator
+        /**try {
             indexLocation = outputDir;
             indexer = new Lucene(outputDir);
         } catch (Exception ex) {
             System.out.println("Cannot create index..." + ex.getMessage());
             System.exit(-1);
         }
-
         //===================================================
         //read input from user until he enters q for quit
         //===================================================
@@ -55,8 +58,11 @@ public class Lucene {
                 indexer.closeIndex();
             } catch (Exception e) {
                 System.out.println("Error indexing " + inputDir + " : " + e.getMessage());
-        }
+        }**/
 
+    }
+    public Lucene(){
+        this("", "");
     }
 
 
@@ -67,12 +73,17 @@ public class Lucene {
     *
     */
 
-    public ArrayList<String[]> queryResults(String query, int numResults, int window){
+    public ArrayList<String[]> queryResults(String query, int numResults, int window, int indexContext){
 
+            String activeIndex = null;
+            if(indexContext == 1) activeIndex = "out";
+            else if(indexContext == 2) activeIndex = "out2";
+            else if(indexContext == 3) activeIndex = "out3";
+            else if(indexContext == 4) activeIndex = "out4";
             ArrayList<String[]> results = new ArrayList<String[]>();
             String[] contextSentences = null;
             try {
-                IndexReader reader = DirectoryReader.open(FSDirectory.open(new File(indexLocation)));
+                IndexReader reader = DirectoryReader.open(FSDirectory.open(new File(activeIndex)));
                 IndexSearcher searcher = new IndexSearcher(reader);
                 TopScoreDocCollector collector = TopScoreDocCollector.create(numResults, true);
                 Query q = new QueryParser(Version.LUCENE_40, "index", analyzer).parse(query);
@@ -97,6 +108,10 @@ public class Lucene {
         }
         // System.out.println("Original sentence is located at index: " + window);
         return results;
+    }
+    // alternative constructor where we use single sentence document index
+    public ArrayList<String[]> queryResults(String query, int numResults, int window){
+        return queryResults(query, numResults, window, 1);
     }
     /**
      * Constructor
@@ -206,15 +221,7 @@ public class Lucene {
            queryResults = engine.queryResults(s, 1, window);
            System.out.println("Input: " + s);
            for(String[] s2 : queryResults) {
-<<<<<<< HEAD
-                System.out.println("Previous: " + s2[window - 1]);  // the previous sentence
-                System.out.println("Match: " + s2[window]);  // the matched sentene
-                System.out.println("Next: " + s2[window + 1]);  // the following sentence
-=======
-                // s2[window - 1];  // the previous sentence
-                // s2[window];  // the matched sentene
-                // s2[window + 1];  // the following sentence sentence
->>>>>>> e80dd71dd2a83e48908b077751612321607ccbe8
+                System.out.println(s2);
            } 
         }
     }

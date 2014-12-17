@@ -131,9 +131,8 @@ public class PCFG {
 				}
 			}
 			
-			System.out.println("Error: Probabilities do not sum to 1.");
+			// System.out.println("Error: Probabilities do not sum to 1.");
 			return "---";
-			
 		}
 		
 		//System.out.println("Error: Input symbol " + lhs + " not found in grammar.");

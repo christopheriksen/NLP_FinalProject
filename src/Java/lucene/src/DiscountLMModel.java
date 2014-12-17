@@ -1203,14 +1203,14 @@ public class DiscountLMModel
 	public static void main(String [] args) {
 
 		// create Lucene object
-		Lucene engine = new Lucene("/home/christopher/Documents/HMC/NLP/FinalProject/data/text.shortened", 
-			"/home/christopher/NLP_FinalProject/src/Java/lucene/out");
+		Lucene engine = new Lucene("data/normal.txt", 
+			"out");
 
 		System.out.println("Created Lucene engine");
 	
 		// train language model for whole corpus
 		double discount = 0.01;
-		DiscountLMModel corpusLMModel = new DiscountLMModel("/home/christopher/Documents/HMC/NLP/FinalProject/data/text.shortened", discount);
+		DiscountLMModel corpusLMModel = new DiscountLMModel("data/normal.txt.rand.shortened", discount);
 
 		System.out.println("Trained corpus ngram model");
 		
